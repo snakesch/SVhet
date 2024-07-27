@@ -1,0 +1,1 @@
+test/test_alignments.bam filter=lfs diff=lfs merge=lfs -text
