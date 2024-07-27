@@ -8,7 +8,7 @@ def filter_by_presence_of_het(callset, het_sites: VariantFile, difficult_regions
     
     import copy
     
-    from utils import query_region_overlap_with_bed
+    from src.utils import query_region_overlap_with_bed
     
     filtered_callset = []
     for _call in callset:

@@ -149,9 +149,9 @@ def loadVCF(path, omit_record=False, encoding = None, resolve_info=True):
 
 def create_variants(vcf):
     
-    from variant import StructuralVariant
+    from src.variant import StructuralVariant
     
-    from constants import VALID_CONTIGS
+    from src.constants import VALID_CONTIGS
     
     header, sample, sv_calls = loadVCF(vcf)
     

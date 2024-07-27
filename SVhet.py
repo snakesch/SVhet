@@ -11,11 +11,11 @@ import multiprocessing as mp
 
 import pysam
 
-from utils import loadVCF, create_variants, write_to_bed
-from heterozygosity import filter_by_presence_of_het
-from homozygosity import get_heterozygous_sites_from_bam
+from src.utils import loadVCF, create_variants, write_to_bed
+from src.heterozygosity import filter_by_presence_of_het
+from src.homozygosity import get_heterozygous_sites_from_bam
 
-from constants import VALID_CONTIGS
+from src.constants import VALID_CONTIGS
 
 # for benchmarking
 # from perf import write_candidates_to_dataframe
@@ -96,9 +96,6 @@ def main():
     with pysam.VariantFile(os.path.join(args.output, basename + '.high_confidence_hets.vcf.gz')) as short_vars:
         sv_filtered_true_het = filter_by_presence_of_het(sv_calls, short_vars, problematic_regions)
     logger.info(f"Step 1 (Filter by heterozygosity): Done (Filtered {tol_variants_n - len(sv_filtered_true_het)} variants)")
-    # print(compare_performance(sv_calls, sv_filtered_true_het))
-    
-    # write_candidates_to_dataframe(sv_filtered_true_het, args.output, basename + '.sv_filtered_true_het.txt')
     
     sv_filtered_3prime, sv_filtered_3prime_5prime = [], []
     
@@ -111,9 +108,6 @@ def main():
         else:
             sv_filtered_3prime.append(region)
     logger.info(f"Step 2 (Filter by 3' homozygosity): Done (Filtered {len(sv_filtered_true_het) - len(sv_filtered_3prime)} variants)")
-    # print(compare_performance(sv_calls, sv_filtered_3prime))
-    
-    # write_candidates_to_dataframe(sv_filtered_3prime, args.output, basename + '.sv_filtered_3prime.txt')
     
     for region in sv_filtered_3prime:
         if region.het_cnt == 0:
@@ -124,10 +118,7 @@ def main():
         else:
             sv_filtered_3prime_5prime.append(region)
     logger.info(f"Step 3 (Filter by 5' homozygosity): Done (Filtered {len(sv_filtered_3prime) - len(sv_filtered_3prime_5prime)} variants)")
-    # print(compare_performance(sv_calls, sv_filtered_3prime_5prime))
-    
-    # write_candidates_to_dataframe(sv_filtered_3prime_5prime, args.output, basename + '.sv_filtered_3prime_5prime.txt')
-    
+
     write_to_bed(sv_filtered_3prime_5prime, args.output, basename + ".sv_filtered_3prime_5prime.bed", sep="\t", index=False, header=False)
     # setting f=0.95 is necessary here to include HDELs spanning (start, end) only
     proc = subprocess.run(f"bedtools intersect -a {os.path.join(args.output, basename + '.hdel.vcf.gz')} -b {os.path.join(args.output, basename + '.sv_filtered_3prime_5prime.bed')} -f 0.95 -r -header | bgzip -c > {os.path.join(args.output, basename + '.filtered.hdel.vcf.gz')}", shell=True)

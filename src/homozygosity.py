@@ -5,7 +5,7 @@
 import pysam
 from collections import deque
 
-from utils import trim_cigar_clipped_with_seq, read_tokenizer, left_align_to_aligned_start
+from src.utils import trim_cigar_clipped_with_seq, read_tokenizer, left_align_to_aligned_start
 
 def get_heterozygous_sites(read_tokens, breakpoint = "5prime") -> list[int]:
 
