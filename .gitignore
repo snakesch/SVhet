@@ -1,0 +1,6 @@
+*.ipynb
+HG002_SVs_Tier1_v0.6_passed.vcf.gz*
+perf.py
+__pycache__/
+archive/
+.ipynb_checkpoints/
