@@ -15,6 +15,8 @@ class StructuralVariant(object):
         self.het_cnt_5prime = 0
         self._record = row
         
+        self.reject_reason = ""
+        
     def __len__(self):
         return self.end - self.start
     
@@ -43,6 +45,7 @@ class StructuralVariant(object):
             "start": [self.start],
             "end": [self.end],
             "length": [len(self)],
-            "het_cnt": [self.het_cnt]
+            "het_cnt": [self.het_cnt],
+            "reason": [self.reject_reason]
         }
         return pd.DataFrame(data)

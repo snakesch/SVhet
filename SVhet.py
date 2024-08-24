@@ -33,6 +33,7 @@ def main():
     parser.add_argument('--repeat-regions', type=str, required=True, help="Regions of known repeat elements >100bp (BED)")
     parser.add_argument("--verbose", default = "INFO", help = "level of verbosity (default: INFO)")
     parser.add_argument("--threads", type = int, default = 4, help = "Number of CPU threads (default: 4)")
+    parser.add_argument("--eval", action="store_true", help=argparse.SUPPRESS)
 
     # Parse the arguments
     args = parser.parse_args()
@@ -40,6 +41,10 @@ def main():
     # Initialize a logger object
     logging.basicConfig(format='[%(asctime)s] %(levelname)s: %(message)s', datefmt='%a %b-%m %I:%M:%S%P', level = args.verbose.upper())
     logger = logging.getLogger("root")
+    
+    # Import benchmark utilities
+    if args.eval:
+        from perf import compare_performance
 
     # Validate the input files
     if not os.path.isfile(args.svcall):
@@ -94,7 +99,7 @@ def main():
     
     # Filters out true het events
     with pysam.VariantFile(os.path.join(args.output, basename + '.high_confidence_hets.vcf.gz')) as short_vars:
-        sv_filtered_true_het = filter_by_presence_of_het(sv_calls, short_vars, problematic_regions)
+        sv_filtered_true_het, excluded_set = filter_by_presence_of_het(sv_calls, short_vars, problematic_regions)
     logger.info(f"Step 1 (Filter by heterozygosity): Done (Filtered {tol_variants_n - len(sv_filtered_true_het)} variants)")
     
     sv_filtered_3prime, sv_filtered_3prime_5prime = [], []
@@ -105,6 +110,9 @@ def main():
             het = get_heterozygous_sites_from_bam(args.bam, region, breakpoint = "3prime", repeat_regions = args.repeat_regions)
             if len(het) <= 1 or len(het) > 5:
                 sv_filtered_3prime.append(region)
+            else:
+                region.reject_reason = "3prime_homozygosity"
+                excluded_set.append(region)
         else:
             sv_filtered_3prime.append(region)
     logger.info(f"Step 2 (Filter by 3' homozygosity): Done (Filtered {len(sv_filtered_true_het) - len(sv_filtered_3prime)} variants)")
@@ -115,13 +123,23 @@ def main():
             het = get_heterozygous_sites_from_bam(args.bam, region, breakpoint = "5prime", repeat_regions = args.repeat_regions)
             if len(het) <= 2:
                 sv_filtered_3prime_5prime.append(region)
+            else:
+                region.reject_reason = "5prime_homozygosity"
+                excluded_set.append(region)
         else:
             sv_filtered_3prime_5prime.append(region)
     logger.info(f"Step 3 (Filter by 5' homozygosity): Done (Filtered {len(sv_filtered_3prime) - len(sv_filtered_3prime_5prime)} variants)")
-
+    
+    # Log excluded variants
+    excluded_list = [sv.to_dataframe() for sv in excluded_set]
+    excluded_df = pd.concat(excluded_list, ignore_index=True)
+    excluded_df.to_csv(os.path.join(args.output, basename + '.excluded_regions.tsv'), sep="\t", index=False)
+    
     write_to_bed(sv_filtered_3prime_5prime, args.output, basename + ".sv_filtered_3prime_5prime.bed", sep="\t", index=False, header=False)
     # setting f=0.95 is necessary here to include HDELs spanning (start, end) only
     proc = subprocess.run(f"bedtools intersect -a {os.path.join(args.output, basename + '.hdel.vcf.gz')} -b {os.path.join(args.output, basename + '.sv_filtered_3prime_5prime.bed')} -f 0.95 -r -header | bgzip -c > {os.path.join(args.output, basename + '.filtered.hdel.vcf.gz')}", shell=True)
+    
+    proc = subprocess.run(f"bedtools intersect -v -a {os.path.join(args.output, basename + '.hdel.vcf.gz')} -b {os.path.join(args.output, basename + '.sv_filtered_3prime_5prime.bed')} -f 0.95 -r -header | bgzip -c > {os.path.join(args.output, basename + '.excluded.hdel.vcf.gz')}", shell=True)
     
     proc = subprocess.run(f"bcftools index --tbi {os.path.join(args.output, basename + '.filtered.hdel.vcf.gz')}", shell=True)
     
@@ -139,6 +157,15 @@ def main():
     os.remove(os.path.join(args.output, basename + '.problematic_regions.high_confidence_hets.vcf.gz.tbi'))
     os.remove(os.path.join(args.output, basename + '.high_confidence_hets.vcf.gz'))
     os.remove(os.path.join(args.output, basename + '.high_confidence_hets.vcf.gz.tbi'))
+    
+    if args.eval:
+        df1 = compare_performance(sv_calls, sv_filtered_true_het)
+        df2 = compare_performance(sv_calls, sv_filtered_3prime).iloc[1, :]
+        df3 = compare_performance(sv_calls, sv_filtered_3prime_5prime).iloc[1, :]
+
+        merged_metrics = pd.concat([df1, df2.to_frame().T, df3.to_frame().T])
+        merged_metrics.index = ["Original", "- heterozygosity", "- 3\' homozygosity", "- 5\' homozygosity"]
+        print(merged_metrics)
     
     return sv_calls, sv_filtered_true_het, sv_filtered_3prime, sv_filtered_3prime_5prime
 

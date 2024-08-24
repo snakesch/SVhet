@@ -74,75 +74,60 @@ def left_align_to_aligned_start(read_token, pos, breakpoint = "3prime"):
     read_token.popleft()
     return left_align_to_aligned_start(read_token, pos, breakpoint = breakpoint)
 
-def loadVCF(path, omit_record=False, encoding = None, resolve_info=True):
+def loadVCF(path, omit_record=False, encoding=None, resolve_info=True):
     """
     Input a VCF file and returns:
-
     1. header (lines begin with #)
     2. subject ID list
     3. record dataframe
-
     """
-    from gzip import GzipFile
-
+    import gzip
     header = []
     subjects = []
+    is_gzip = path.endswith(".gz")
     
-    if path.endswith(".gz"):
-        with GzipFile(path) as f:
-            line = next(f)
-            while line:
-                if line.decode()[1] == "#":
-                    header.append(line.decode().strip())
-                elif line.decode()[0] == "#":
-                    col_names = line.decode().strip().split("\t")
-                    subjects = col_names[9:]
-                else:
-                    break
-                try:
-                    line = next(f)
-                except StopIteration:
-                    break
-    else:
-        with open(path, "rt", encoding=encoding) as f:
-            line = f.readline()
-            while line:
-                if line[0] == "#":
-                    header.append(line.strip())
-                elif line[0] != "#":
-                    col_names = line.strip().split("\t")
-                    subjects = col_names[9:]
-                    break
-                line = f.readline()
+    # Function to process lines
+    def process_line(line):
+        nonlocal subjects
+        if line.startswith("#"):
+            header.append(line.strip())
+            if line.startswith("##"):
+                return
+            subjects = line.strip().split("\t")[9:]
+    
+    # Read file
+    with (gzip.open(path, "rt", encoding=encoding) if is_gzip else open(path, "rt", encoding=encoding)) as f:
+        for line in f:
+            process_line(line)
+            if subjects:
+                break
 
     if omit_record:
         return header, subjects
 
-    vcf = pd.read_csv(path, sep="\t", na_filter=False, engine="c", comment="#", header=None, compression="gzip", encoding = encoding)
-    vcf.columns = col_names
-    if header == None or subjects == None:
+    vcf = pd.read_csv(path, sep="\t", na_filter=False, engine="c", comment="#", header=None, 
+                     compression="gzip" if is_gzip else None, encoding=encoding)
+    
+    vcf.columns = header[-1].split("\t")
+    
+    if not header or not subjects:
         raise RuntimeError("Incorrect VCF format.")
-        
+    
     if resolve_info:
-        # Create new columns
         info_fields = [h.split(",")[0][11:] for h in header if "INFO" in h and "##bcftools" not in h]
         vcf.loc[:, info_fields] = "."
-
+        
         # Populate the columns
-        for idx, c in vcf.iterrows():
-            for f in c["INFO"].split(";"):
-                # if we have a key-value pair
+        for idx, row in vcf.iterrows():
+            for f in row["INFO"].split(";"):
                 if "=" in f:
                     key, value = f.split("=")
                     if key in info_fields:
-                        c[key] = value
-                # if not key-value pair, just tags
-                else:
-                    if f in info_fields:
-                        c[f] = True
-
-            # Assign the updated row back to the DataFrame
-            vcf.iloc[idx, :] = c
+                        row[key] = value
+                elif f in info_fields:
+                    row[f] = True
+            vcf.iloc[idx, :] = row
+        
         vcf = vcf.drop("INFO", axis=1)
     
     return header, subjects, vcf
