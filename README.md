@@ -15,6 +15,11 @@ conda env create -f environment.yml
 conda activate svhet
 ```
 
+Alternatively, SVhet can be downloaded from PyPI:
+```bash
+pip install svhet
+```
+
 Next, make sure singularity (v3.0+) is available on the system and pull the DeepVariant image:
 
 ```bash
