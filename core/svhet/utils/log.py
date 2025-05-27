@@ -53,6 +53,9 @@ def setup_logger(name="svhet", level=DEBUG, log_file=""):
     log_level = LOG_LEVELS.get(level.upper(), logging.INFO)
     logger.setLevel(log_level)
     
+    for handler in logger.handlers:
+        handler.setLevel(log_level)
+    
     if log_file:
         if os.path.exists(log_file):
             os.remove(log_file)

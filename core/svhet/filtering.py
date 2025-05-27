@@ -16,7 +16,7 @@ logger = setup_logger("svhet")
 def filter_sv_callset(vcf_fp, bam_fp, outdir, reference_fasta_path, 
                      output_filename="filtered.vcf.gz", threads=4, 
                      cipos_tag="CIPOS", ciend_tag="CIEND",
-                     ad2dp=0.25, min_dp=10, fully_within=True,
+                     ad2dp=0.4, min_dp=5, fully_within=True,
                      image_path=None, region_file=None, force_rerun=False):
     """
     Main function to filter structural variants based on heterozygous SNPs.
@@ -164,7 +164,7 @@ def filter_variants(vcf_fp, out_filtered_vcf, wt_pos, mut_pos, read_length, cipo
     variant_pos = [v.POS for v in vcf()]
     vcf.close()
     
-    vcf = cyvcf2.VCF(vcf_fp)
+    vcf = cyvcf2.VCF(os.path.join(os.path.dirname(out_filtered_vcf), "candidates.vcf.gz"))
     het_counts = []
     alt_haplotypes_for_long_deletions = {} ## variant.ID->alt haplotypes
     for variant in vcf():

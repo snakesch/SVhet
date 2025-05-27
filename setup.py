@@ -10,7 +10,7 @@ class PostInstallCompile(install):
         
 setup(
     name="svhet",
-    version="0.1.0",
+    version="0.1.2",
     description="An accurate NGS-based structural variant filtering tool using heterozygous sites",
     packages=find_packages(where="core"),
     package_dir={"": "core"},

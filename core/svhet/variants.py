@@ -37,8 +37,6 @@ def extract_het_positions(wt_vcf, mut_vcf, ad2dp=0.4, min_dp=5):
 def extract_variants_within_regions(vcf: cyvcf2.VCF, bed: pb.BedTool, fully_within=True):
     """Extracts DEL HET variants from VCF fully within BED regions."""
     
-    print("Extracting variants with fully_within set to ", fully_within)
-    
     with warnings.catch_warnings():
         warnings.filterwarnings("ignore", category=UserWarning)
  
@@ -49,17 +47,19 @@ def extract_variants_within_regions(vcf: cyvcf2.VCF, bed: pb.BedTool, fully_with
             end_1based = region.stop + 1
 
             for variant in vcf(f"{chrom}:{start_1based}-{end_1based}"):
-                # if variant.INFO.get("SVTYPE") != "DEL":
-                #     continue
-                # elif variant.gt_types[0] != 1:
-                #     continue
+                if variant.INFO.get("SVTYPE") != "DEL":
+                    continue
+                elif variant.gt_types[0] != 1:
+                    continue
                 
                 if fully_within:
                     if variant.POS >= start_1based and variant.end <= end_1based:
                         filtered_variants_tmp[variant.ID] = variant
                 else:
                     if start_1based < variant.POS < end_1based or start_1based < variant.end < end_1based:
-                        filtered_variants_tmp[variant.ID] = variant                   
+                        filtered_variants_tmp[variant.ID] = variant
+                    elif variant.POS < start_1based and variant.end > end_1based:
+                        filtered_variants_tmp[variant.ID] = variant             
 
         return list(filtered_variants_tmp.values())
     

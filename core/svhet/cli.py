@@ -77,7 +77,10 @@ def main():
     args = parse_args()
     
     import os
+    import logging
     from svhet.utils.log import setup_logger
+    
+    logging.basicConfig(level=getattr(logging, args.log_level))
     
     logger = setup_logger("svhet", level=args.log_level)
     
