@@ -204,6 +204,7 @@ echo -e "SVhet done for all samples! "
 ## Final cleanup step
 [[ $KEEP_INTERMEDIATE != "true" ]] && rm -f "${OUTDIR}"/no_candidates.bcf*;
 [[ $KEEP_INTERMEDIATE != "true" ]] && rm -f "${OUTDIR}"/small_candidates.bcf*;
+[[ $KEEP_INTERMEDIATE != "true" ]] && rm -f "${OUTDIR}"/large_candidates.bcf*;
 [[ $KEEP_INTERMEDIATE != "true" ]] && rm -f "${OUTDIR}"/*-annotated.bcf*;
 
 cd $OLDPWD ## Return to original directory
