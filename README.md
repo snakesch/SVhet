@@ -143,7 +143,9 @@ bash svhet.sh --ref chm13.v2.fasta \
              --manifest test/manifest.txt \
              --jobs 4
 ```
+
 Upon successful completion, the output file in `test/results/final-annotated.vcf.gz` should be the same as the one in `test/output/`. Use absolute paths if there is no output. 
+
 ---
 
 ## Citation
