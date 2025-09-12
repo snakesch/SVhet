@@ -128,17 +128,22 @@ In the example above, `sv2` should be excluded from downstream analysis due to h
 ```
 HG00096  /path/to/HG00096.bam /path/to/HG00096.bam.bai
 HG00097  /path/to/HG00097.bam /path/to/HG00097.bam.bai
+<NEW_LINE>
 ```
+Notice there is an extra new line character in the end of file. The manifest file is tab-delimited.
 
 **Example Run**
+
+To run the test case, download the T2T reference from [here](https://s3-us-west-2.amazonaws.com/human-pangenomics/T2T/CHM13/assemblies/analysis_set/chm13v2.0.fa.gz). Decompress the reference gzip file and run SVhet as follows.
+
 ```bash
 bash svhet.sh --ref chm13.v2.fasta \
-             --sv-vcf lumpy.vcf.gz \
-             --outdir results/ \
-             --manifest manifest.txt \
+             --sv-vcf test/chr1_127510500_128695280_HG00096.vcf.gz \
+             --outdir test/results \
+             --manifest test/manifest.txt \
              --jobs 4
 ```
-
+Upon successful completion, the output file in `test/results/final-annotated.vcf.gz` should be the same as the one in `test/output/`. Use absolute paths if there is no output. 
 ---
 
 ## Citation
