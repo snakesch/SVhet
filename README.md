@@ -152,7 +152,7 @@ Upon successful completion, the output file in `test/results/final-annotated.vcf
 
 If you use SVhet in your research, please cite:
 
-> CH She, et al. SVhet: Heterozygosity-based filtering of structural variant calls in cohorts. (2025)
+> CH She, et al. SVhet: Towards accurate detection of germline heterozygous deletions using short reads. (2025)
 
 ---
 
