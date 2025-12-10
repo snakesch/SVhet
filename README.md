@@ -128,7 +128,6 @@ In the example above, `sv2` should be excluded from downstream analysis due to h
 ```
 HG00096  /path/to/HG00096.bam /path/to/HG00096.bam.bai
 HG00097  /path/to/HG00097.bam /path/to/HG00097.bam.bai
-<NEW_LINE>
 ```
 Notice there is an extra new line character in the end of file. The manifest file is tab-delimited.
 
@@ -152,7 +151,7 @@ Upon successful completion, the output file in `test/results/final-annotated.vcf
 
 If you use SVhet in your research, please cite:
 
-> CH She, et al. SVhet: Towards accurate detection of germline heterozygous deletions using short reads. (2025)
+> She, C.H., Chan, S.HS. & Yang, W. SVhet: towards accurate detection of germline heterozygous deletions using short reads. BMC Bioinformatics (2025). https://doi.org/10.1186/s12859-025-06342-7
 
 ---
 
