@@ -81,13 +81,15 @@ def generate_variants(cohort_vcf, sample_id):
 
     variant_pool = {}
     for record in vcf.fetch():
+        if "CIPOS" not in record.info:
+            continue  # some Manta SVs do not have CIPOS/CIEND
         variant_key = (
             record.chrom,
             (record.start, record.stop),
             record.ref,
             record.alts[0],
             record.info["CIPOS"],
-            record.info["CIEND"]
+            record.info["CIEND"] if "CIEND" in record.info else record.info["CIPOS"],
         )
         gt = record.samples[sample_id]["GT"]
         result = "not_analysed" if gt == (0, 1) else "PASS"
