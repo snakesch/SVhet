@@ -1,6 +1,14 @@
 #!/bin/bash
+#
+# DEPRECATED — use the Python entry point instead:
+#   python svhet.py --ref <ref.fasta> --sv-vcf <cohort.vcf.gz> --outdir <out/> --manifest <manifest.txt> [OPTIONS]
+#
+# This bash script is kept for backward compatibility only and will be removed
+# in the next release. All functionality has been reimplemented in the svhet/
+# Python package.
+#
 
-## Entry point for SVhet
+## Entry point for SVhet (legacy)
 
 set -euo pipefail
 tmpdir="$(mktemp -d)"; trap 'rm -rf "$tmpdir"' EXIT
