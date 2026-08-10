@@ -112,7 +112,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 # Clone SVhet
 RUN git clone https://github.com/snakesch/SVhet.git && \
     cd SVhet && \
-    chmod +x svhet.sh
+    chmod +x svhet.py
 
 ENV PATH="/opt/SVhet:${PATH}"
 
@@ -127,7 +127,7 @@ python -c "import pysam; print(f\"Pysam: {pysam.__version__}\")" \n\
 bcftools --version | head -n1\n\
 bedtools --version\n\
 samtools --version | head -n1\n\
-ls -lh /opt/SVhet/svhet.sh\n\
+python /opt/SVhet/svhet.py --help > /dev/null\n\
 echo "✓ All tests passed!"\n\
 ' > /opt/test_installation.sh && chmod +x /opt/test_installation.sh
 
